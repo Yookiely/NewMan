@@ -1,5 +1,6 @@
 package com.example.asus.newman;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.webkit.WebView;
 import android.widget.TextView;
 import android.os.Handler;
 import android.os.Message;
+
 import com.google.gson.Gson;
 
 import org.json.JSONException;
@@ -37,6 +39,7 @@ public class NewsActivity extends AppCompatActivity {
     Handler handler;
     TextView textView;
 
+    @SuppressLint({"HandlerLeak", "SetJavaScriptEnabled"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,12 +47,12 @@ public class NewsActivity extends AppCompatActivity {
         webView = (WebView) findViewById(R.id.webView);
         textView = (TextView) findViewById(R.id.text_subject);
         webView.getSettings().setJavaScriptEnabled(true);
-       sendRequestWithOkhttp();
+        sendRequestWithOkhttp();
 
         handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
-              webView.loadData(contentBean.title,"text/html;charset=utf-8",null);
+                webView.loadData(contentBean.title, "text/html;charset=utf-8", null);
                 Bundle b = msg.getData();
                 textView.setText(b.getString("name"));
                 super.handleMessage(msg);
@@ -57,7 +60,7 @@ public class NewsActivity extends AppCompatActivity {
         };
     }
 
-    public void sendRequestWithOkhttp(){
+    public void sendRequestWithOkhttp() {
         Intent intent = getIntent();
         final String b = intent.getStringExtra("1");
         new Thread(new Runnable() {
@@ -66,7 +69,7 @@ public class NewsActivity extends AppCompatActivity {
                 try {
                     OkHttpClient client = new OkHttpClient();
                     Request request = new Request.Builder()
-                            .url("https://open.twtstudio.com/api/v1/news/"+b)
+                            .url("https://open.twtstudio.com/api/v1/news/" + b)
                             .build();
                     Response response = client.newCall(request).execute();
                     String responseDate = response.body().string();
@@ -74,7 +77,7 @@ public class NewsActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                Message msg =  new Message();
+                Message msg = new Message();
                 msg.obj = contentBean.title;
                 Bundle b = new Bundle();
                 b.putString("name", contentBean.subject);
@@ -83,21 +86,22 @@ public class NewsActivity extends AppCompatActivity {
             }
         }).start();
     }
+
     public void parseJSONWithJSONObject(String jsonData) {
-       try{ JSONObject jsonObject = new JSONObject(jsonData);
+        try {
+            JSONObject jsonObject = new JSONObject(jsonData);
 
-        jsonObject = jsonObject.getJSONObject("data");
-           contentBean.title = jsonObject.getString("content");
-           contentBean.subject = jsonObject.getString("subject");
+            jsonObject = jsonObject.getJSONObject("data");
+            contentBean.title = jsonObject.getString("content");
+            contentBean.subject = jsonObject.getString("subject");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-       catch (Exception e){
-           e.printStackTrace();
-       }
 
 
     }
 
 
-    }
+}
 
 
